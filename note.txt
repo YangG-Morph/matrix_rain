@@ -1,0 +1,10 @@
+Remove FPS limit
+from src.logger import logging
+Copy display_fps code
+
+Checklist:
+* Max trails to be spawned
+* Max Total trails
+* Trail timer
+* Screen Size
+
