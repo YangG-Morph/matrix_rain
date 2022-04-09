@@ -3,8 +3,8 @@ from src.logger import logging
 Copy display_fps code
 
 Checklist:
-* Max trails to be spawned
-* Max Total trails
-* Trail timer
-* Screen Size
+* Max trails spawned on timer - 10
+* Max Total trails - 150
+* Trail timer - random.randint(100, 500)
+* Screen Size - 1920x1080
 
