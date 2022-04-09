@@ -39,10 +39,10 @@ class Trail(pygame.sprite.Group):
 
     def update(self, dt):
         [letter.update(dt) for letter in self.letters]
+        if any(letter.changed for letter in self.letters):
+            self.update_surface()
         self.rect.center += self.velocity
 
     def draw(self, surface):
-        if any(letter.changed for letter in self.letters):
-            self.update_surface()
         surface.blit(self.surface, self.rect)
 

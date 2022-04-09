@@ -6,6 +6,7 @@ from src import utils
 from src.window_manager import WindowManager
 from src.rendered_text import RenderedText
 from src.constants import FPS, GREEN, MAX_TRAILS
+from src.logger import logging
 
 # Done? TODO Blit letters to the Trail surface
 # Done? TODO Remove off screen trails only when new trails are made
@@ -22,7 +23,7 @@ class Game:
         self.trails = []
         self.bounds = pygame.Rect((0, 0), pygame.display.get_window_size())
         self.blured = False
-        self.debug_mode = False
+        self.debug_mode = True
         self._init_timers()
         self._add_new_trails()
 
@@ -43,7 +44,7 @@ class Game:
         raise SystemExit
 
     def update_bounds(self):
-        self.bounds = pygame.Rect((0, 0), pygame.display.get_window_size())
+        self.bounds.size = pygame.display.get_window_size()
 
     def _handle_events(self):
         for event in pygame.event.get():
@@ -74,7 +75,7 @@ class Game:
 
     def _add_new_trails(self):
         if len(self.trails) < MAX_TRAILS:
-            amount = min(random.randint(20, 50), MAX_TRAILS - len(self.trails))
+            amount = min(10, MAX_TRAILS - len(self.trails))
             self.trails += utils.make(Trail, amount)
             self.trails.sort(reverse=False, key=lambda trail: trail.letters[0].size)
 
@@ -92,18 +93,31 @@ class Game:
         self.screen.blit(new_surf, (0, 0))
 
     def display_fps(self):
-        text = f"FPS: {self.clock.get_fps():.0f} " \
+        if not hasattr(self, 'all_fps'):
+            self.all_fps = []
+            self.performance_start_time = pygame.time.get_ticks()
+        current_fps = self.clock.get_fps()
+        if current_fps > 0:  # Exclude loading
+            self.all_fps.append(current_fps)
+        text = f"FPS: {current_fps:.0f} " \
                f"Trails: {len(self.trails)} " \
-               f"Letters: {sum([len(trail.letters) for trail in self.trails])}"
+               f"Letters: {sum([len(trail.letters) for trail in self.trails])} " \
+               f"Average FPS: {((sum(self.all_fps)/len(self.all_fps)) if self.all_fps else 0):.2f} " \
+               f"Lowest FPS: {(min(self.all_fps) if self.all_fps else 0):.2f} " \
+               f"Highest FPS: {(max(self.all_fps) if self.all_fps else 0):.2f} "
+
         size = 18
         rendered_text = RenderedText.font_objects[size].render(text, True, 'white')
         rendered_text_shadow = RenderedText.font_objects[size].render(text, True, 'purple')
         self.screen.blit(rendered_text_shadow, (-1, -1))
         self.screen.blit(rendered_text, (0, 0))
+        logging.debug(text)
+        if pygame.time.get_ticks() - self.performance_start_time >= 180_000:  # In miliseconds, 180_000 is 3 minute
+            self.quit()
 
     def run(self):
         while True:
-            dt = self.clock.tick_busy_loop(FPS)
+            dt = self.clock.tick_busy_loop()
             self._handle_events()
 
             self.clear_screen()
