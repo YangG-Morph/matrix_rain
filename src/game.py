@@ -6,7 +6,8 @@ from src import utils
 from src.window_manager import WindowManager
 from src.rendered_text import RenderedText
 from src.constants import FPS, GREEN, MAX_TRAILS
-from src.logger import logging
+#from src.logger import logging
+from src.utils import time_it
 
 # Done? TODO Blit letters to the Trail surface
 # Done? TODO Remove off screen trails only when new trails are made
@@ -45,20 +46,21 @@ class Game:
 
     def update_bounds(self):
         self.bounds.size = pygame.display.get_window_size()
+        [trail.update_bounds(self.bounds) for trail in self.trails]
 
     def _handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.quit()
-            if event.type == TRAIL_TIMER:
+            elif event.type == TRAIL_TIMER:
                 pygame.time.set_timer(TRAIL_TIMER, random.randint(100, 500))
                 self._add_new_trails()
-            if event.type == pygame.MOUSEMOTION and not pygame.mouse.get_visible():
+            elif event.type == pygame.MOUSEMOTION and not pygame.mouse.get_visible():
                 pygame.mouse.set_visible(True)
-            if event.type == MOUSE_TIMER and pygame.mouse.get_visible():
+            elif event.type == MOUSE_TIMER and pygame.mouse.get_visible():
                 pygame.time.set_timer(MOUSE_TIMER, 1000)
                 self.hide_cursor()
-            if event.type == pygame.KEYDOWN:
+            elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_q:
                     self.quit()
                 elif event.key == pygame.K_w:
@@ -75,17 +77,14 @@ class Game:
 
     def _add_new_trails(self):
         if len(self.trails) < MAX_TRAILS:
-            amount = min(10, MAX_TRAILS - len(self.trails))
-            self.trails += utils.make(Trail, amount)
+            amount = min(20, MAX_TRAILS - len(self.trails))
+            self.trails += utils.make(Trail, amount, args=[self.bounds])
             self.trails.sort(reverse=False, key=lambda trail: trail.letters[0].size)
 
     def _handle_trails(self, dt):
-        for trail in self.trails:
-            trail.update(dt)
-            trail.draw(self.screen)
+        [(trail.update(dt), trail.draw(self.screen)) for trail in self.trails]
         if pygame.time.get_ticks() % 2:
-            self.trails[:] = [trail for trail in self.trails
-                              if trail.rect.top < self.bounds.bottom]
+            self.trails[:] = [trail for trail in self.trails if trail.on_screen()]
 
     def blur(self):
         new_surf = pygame.transform.smoothscale(self.screen, (self.bounds.width // 2, self.bounds.height // 2))
@@ -111,9 +110,9 @@ class Game:
         rendered_text_shadow = RenderedText.font_objects[size].render(text, True, 'purple')
         self.screen.blit(rendered_text_shadow, (-1, -1))
         self.screen.blit(rendered_text, (0, 0))
-        logging.debug(text)
-        if pygame.time.get_ticks() - self.performance_start_time >= 180_000:  # In miliseconds, 180_000 is 3 minute
-            self.quit()
+        #logging.debug(text)
+        #if pygame.time.get_ticks() - self.performance_start_time >= 60_000:  # In miliseconds, 180_000 is 3 minute
+        #    self.quit()
 
     def run(self):
         while True:

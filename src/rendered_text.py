@@ -11,7 +11,7 @@ class RenderedText:
         for color in [GREENISH_WHITE, GREEN]:
             for size, font_obj in cls.font_objects.items():
                 for letter in ALLOWED_LETTERS:
-                    rendered = font_obj.render(letter, True, color, BLACK).convert_alpha()
+                    rendered = font_obj.render(letter, True, color, BLACK)
                     rendered.set_colorkey(BLACK)
                     letter_dict = {letter: rendered}
                     try:
