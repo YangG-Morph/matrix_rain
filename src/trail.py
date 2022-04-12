@@ -30,7 +30,6 @@ class Trail(pygame.sprite.Group):
         y = random.randint(-height - 200, -height)
         self.rect.update((x, y), (width, height))
 
-    @time_it
     def update_surface(self):
         # Must clear trail surface
         self.surface = pygame.Surface(self.rect.size)
